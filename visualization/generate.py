@@ -20,7 +20,7 @@ def add_gumbel_noise(logits, temperature):
 def get_num_transfer_tokens(mask_index, steps):
     '''
     In the reverse process, the interval [0, 1] is uniformly discretized into steps intervals.
-    Furthermore, because LLaDA employs a linear noise schedule (as defined in Eq. (8)),
+    Furthermore, because Genjo employs a linear noise schedule (as defined in Eq. (8)),
     the expected number of tokens transitioned at each step should be consistent.
 
     This function is designed to precompute the number of tokens that need to be transitioned at each step.
@@ -125,8 +125,8 @@ def generate(model, prompt, tokenizer, steps=128, gen_length=128, block_length=1
 def main():
     device = 'cuda'
 
-    model = AutoModel.from_pretrained('GSAI-ML/LLaDA-8B-Instruct', trust_remote_code=True, torch_dtype=torch.bfloat16).to(device).eval()
-    tokenizer = AutoTokenizer.from_pretrained('GSAI-ML/LLaDA-8B-Instruct', trust_remote_code=True)
+    model = AutoModel.from_pretrained('GSAI-ML/Genjo-8B-Instruct', trust_remote_code=True, torch_dtype=torch.bfloat16).to(device).eval()
+    tokenizer = AutoTokenizer.from_pretrained('GSAI-ML/Genjo-8B-Instruct', trust_remote_code=True)
 
     prompt = "Explain what artificial intelligence is."
 

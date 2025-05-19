@@ -1,6 +1,6 @@
 # Visualization
 
-This repository contains visualization tools for the LLaDA project.
+This repository contains visualization tools for the Genjo project.
 
 ## Implementation Steps
 

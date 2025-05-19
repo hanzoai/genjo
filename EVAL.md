@@ -1,9 +1,9 @@
 # Eval
 
 ## Usage
-Please refer to `eval_llada.sh` for the required dependencies and execution commands.
+Please refer to `eval_genjo.sh` for the required dependencies and execution commands.
 
-For LLaDA-Base, we provide a comparison of the five conditional generation metrics evaluated using both the open-source `lm-eval` library and our internal evaluation toolkit.
+For Genjo-Base, we provide a comparison of the five conditional generation metrics evaluated using both the open-source `lm-eval` library and our internal evaluation toolkit.
 
 ||BBH|GSM8K|Math|HumanEval|MBPP|
 |-|-|-|-|-|-|
@@ -27,7 +27,7 @@ To ensure that we was using `lm-eval` correctly, we first tested it on **LLaMA3-
 |Internal toolkit|68.4|41.9|82.4|78.3|29.6|33.5|59.8|57.6|
 |`lm-eval`|66.5|19.6|82.1|67.3|27.3|33.5|36.6|57.0|
 
-We found that for benchmarks such as MMLU-Pro, GSM8K, and HumanEval, the results obtained using `lm-eval` are significantly lower than expected. Once we resolve the issues affecting the evaluation of LLaMA3-8B-Instruct, we will release the evaluation code for LLaDA-Instruct.
+We found that for benchmarks such as MMLU-Pro, GSM8K, and HumanEval, the results obtained using `lm-eval` are significantly lower than expected. Once we resolve the issues affecting the evaluation of LLaMA3-8B-Instruct, we will release the evaluation code for Genjo-Instruct.
 
 If you have any suggestions or feedback on this BUG, please feel free to contact us via email at nieshen@ruc.edu.cn or reach out via WhatsApp/WeChat at (+86) 18809295303. We would greatly appreciate it.
 

@@ -6,8 +6,8 @@ from transformers import AutoTokenizer, AutoModel
 
 def chat():
     device = 'cuda'
-    model = AutoModel.from_pretrained('GSAI-ML/LLaDA-8B-Instruct', trust_remote_code=True, torch_dtype=torch.bfloat16).to(device).eval()
-    tokenizer = AutoTokenizer.from_pretrained('GSAI-ML/LLaDA-8B-Instruct', trust_remote_code=True)
+    model = AutoModel.from_pretrained('GSAI-ML/Genjo-8B-Instruct', trust_remote_code=True, torch_dtype=torch.bfloat16).to(device).eval()
+    tokenizer = AutoTokenizer.from_pretrained('GSAI-ML/Genjo-8B-Instruct', trust_remote_code=True)
 
     gen_length = 128
     steps = 128
@@ -32,7 +32,7 @@ def chat():
         out = generate(model, prompt, steps=steps, gen_length=gen_length, block_length=32, temperature=0., cfg_scale=0., remasking='low_confidence')
 
         answer = tokenizer.batch_decode(out[:, prompt.shape[1]:], skip_special_tokens=True)[0]
-        print(f"Bot's reply: {answer}")
+        print(f"Genjo's reply: {answer}")
 
         # remove the <EOS>
         prompt = out[out != 126081].unsqueeze(0)

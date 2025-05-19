@@ -1,11 +1,11 @@
 # Guidelines
-Here, we provide guidelines for the model architecture, pre-training, SFT, and inference of LLaDA.
+Here, we provide guidelines for the model architecture, pre-training, SFT, inference, and planned integration with the Enso MoE framework.
 
 ## Model Architecture
 
-LLaDA employs a Transformer Encoder as the network architecture for its mask predictor. 
+Genjo employs a Transformer Encoder as the network architecture for its mask predictor. 
 In terms of trainable parameters, the Transformer Encoder is identical to the Transformer 
-Decoder. Starting from an autoregressive model, we derive the backbone of LLaDA by simply 
+Decoder. Starting from an autoregressive model, we derive the backbone of Genjo by simply 
 removing the causal mask from the self-attention mechanism as following.
 
 <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 50px;">
@@ -13,11 +13,11 @@ removing the causal mask from the self-attention mechanism as following.
     <img src="imgs/transformer2.png" style="width: 90%;" />
 </div>
 
-In addition, LLaDA designates a reserved token as the mask token (i.e., 126336).
+In addition, Genjo designates a reserved token as the mask token (i.e., 126336).
 
 
 ## Pre-training
-The pre-training of LLaDA is straightforward and simple. Starting from an existing 
+The pre-training of Genjo is straightforward and simple. Starting from an existing 
 autoregressive model training code, only a few lines need to be modified. 
 We provide the core code (i.e., loss computation) here.
 
@@ -91,7 +91,7 @@ ce_loss = torch.sum(token_loss / answer_lengths[masked_indices]) / input_ids.sha
 ```
 
 ## Sampling
-Overall, we categorize LLaDA's sampling process into three types: fixed-length, semi-autoregressive-origin, and semi-autoregressive-padding.
+Overall, we categorize Genjo's sampling process into three types: fixed-length, semi-autoregressive-origin, and semi-autoregressive-padding.
 **It is worth noting that the semi-autoregressive-origin method was not mentioned in our paper, nor did we provide the corresponding code**. 
 However, we include it here because we believe that sharing both our failures and insights from the exploration process is valuable.
 These three sampling methods are illustrated in the figure below.
@@ -107,11 +107,11 @@ To determine which predicted tokens should be re-masked, we can adopt two strate
 *low-confidence remasking*. Notably, both remasking strategies can be applied to all three sampling processes 
 mentioned above.
 
-For the LLaDA-Base model, we adapt low-confidence remasking to the three sampling processes mentioned above. 
+For the Genjo-Base model, we adapt low-confidence remasking to the three sampling processes mentioned above. 
 We find that fixed-length and semi-autoregressive-padding achieve similar results, whereas semi-autoregressive-origin 
 performs slightly worse.
 
-For the LLaDA-Instruct model, the situation is slightly more complex. 
+For the Genjo-Instruct model, the situation is slightly more complex. 
 
 First, if the semi-autoregressive-origin method is used, 
 the Instruct model performs poorly. This is because, during SFT, each sequence is a complete sentence (whereas in pre-training, 
@@ -130,6 +130,68 @@ the issue of generating an excessively high proportion of <EOS> tokens. Moreover
 slightly better results than randomly remasking & fixed-length.
 
 You can find more details about the sampling method in our paper.
+
+## Integration with Enso MoE Framework
+
+We are planning to integrate Genjo with the Enso Mixture of Experts (MoE) framework to enhance scalability and efficiency. The integration will focus on several key areas:
+
+### 1. MoE Architecture Adaptation
+
+The core adaptation will involve replacing standard MLP blocks in the Transformer Encoder with sparse MoE blocks that route tokens to specialized experts:
+
+```python
+class SparseMoeBlock(nn.Module):
+    """
+    A mixed expert module containing shared experts.
+    """
+    def __init__(self, embed_dim, mlp_ratio=4, num_experts=16, num_experts_per_tok=2, pretraining_tp=2):
+        super().__init__()
+        self.num_experts_per_tok = num_experts_per_tok
+        self.experts = nn.ModuleList([MoeMLP(hidden_size=embed_dim, intermediate_size=mlp_ratio * embed_dim, pretraining_tp=pretraining_tp) for i in range(num_experts)])
+        self.gate = MoEGate(embed_dim=embed_dim, num_experts=num_experts, num_experts_per_tok=num_experts_per_tok)
+        self.n_shared_experts = 2
+        
+        if self.n_shared_experts is not None:
+            intermediate_size = embed_dim * self.n_shared_experts
+            self.shared_experts = MoeMLP(hidden_size=embed_dim, intermediate_size=intermediate_size, pretraining_tp=pretraining_tp)
+```
+
+This architecture will allow the model to scale to 16B+ parameters while maintaining efficient inference through sparse activations.
+
+### 2. Expert Routing Strategies
+
+We'll implement token routing mechanisms to determine which experts should process each token:
+
+```python
+class MoEGate(nn.Module):
+    def __init__(self, embed_dim, num_experts=16, num_experts_per_tok=2, aux_loss_alpha=0.01):
+        super().__init__()
+        self.top_k = num_experts_per_tok
+        self.n_routed_experts = num_experts
+        self.scoring_func = 'softmax'
+        self.alpha = aux_loss_alpha
+        self.weight = nn.Parameter(torch.empty((self.n_routed_experts, embed_dim)))
+```
+
+This routing mechanism will ensure efficient use of model capacity and enable specialized processing for different types of language tasks.
+
+### 3. Training Adaptations
+
+Training the integrated Genjo-MoE model will require several adaptations:
+
+- **Load Balancing Loss**: Implementing auxiliary losses to ensure even utilization of experts
+- **DeepSpeed Integration**: Using DeepSpeed for efficient distributed training
+- **Rectified Flow Training**: Applying techniques from image diffusion models to improve performance
+
+### 4. Inference Optimizations
+
+The integrated model will support optimized inference through:
+
+- **Batched Expert Processing**: Tokens routed to the same expert will be processed together
+- **Half-Precision Support**: Using fp16 precision for large model inference
+- **Consistency Distillation**: Reducing the number of sampling steps required for generation
+
+These optimizations will help address the current sampling efficiency limitations of the diffusion-based approach while leveraging the parameter efficiency of MoE architecture.
 
 
 

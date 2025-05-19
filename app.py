@@ -10,13 +10,13 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
 # Load model and tokenizer
-tokenizer = AutoTokenizer.from_pretrained('GSAI-ML/LLaDA-8B-Instruct', trust_remote_code=True)
-model = AutoModel.from_pretrained('GSAI-ML/LLaDA-8B-Instruct', trust_remote_code=True, 
+tokenizer = AutoTokenizer.from_pretrained('GSAI-ML/Genjo-8B-Instruct', trust_remote_code=True)
+model = AutoModel.from_pretrained('GSAI-ML/Genjo-8B-Instruct', trust_remote_code=True, 
                                   torch_dtype=torch.bfloat16).to(device)
 
 # Constants
 MASK_TOKEN = "[MASK]"
-MASK_ID = 126336  # The token ID of [MASK] in LLaDA
+MASK_ID = 126336  # The token ID of [MASK] in Genjo
 
 def parse_constraints(constraints_text):
     """Parse constraints in format: 'position:word, position:word, ...'"""
@@ -41,7 +41,7 @@ def parse_constraints(constraints_text):
 
 def format_chat_history(history):
     """
-    Format chat history for the LLaDA model
+    Format chat history for the Genjo model
     
     Args:
         history: List of [user_message, assistant_message] pairs
@@ -74,7 +74,7 @@ def add_gumbel_noise(logits, temperature):
 def get_num_transfer_tokens(mask_index, steps):
     '''
     In the reverse process, the interval [0, 1] is uniformly discretized into steps intervals.
-    Furthermore, because LLaDA employs a linear noise schedule (as defined in Eq. (8)),
+    Furthermore, because Genjo employs a linear noise schedule (as defined in Eq. (8)),
     the expected number of tokens transitioned at each step should be consistent.
 
     This function is designed to precompute the number of tokens that need to be transitioned at each step.
@@ -95,7 +95,7 @@ def generate_response_with_visualization(model, tokenizer, device, messages, gen
                                          constraints=None, temperature=0.0, cfg_scale=0.0, block_length=32,
                                          remasking='low_confidence'):
     """
-    Generate text with LLaDA model with visualization using the same sampling as in generate.py
+    Generate text with Genjo model with visualization using the same sampling as in generate.py
     
     Args:
         messages: List of message dictionaries with 'role' and 'content'
@@ -294,8 +294,8 @@ button{height: 60px}
 '''
 def create_chatbot_demo():
     with gr.Blocks(css=css) as demo:
-        gr.Markdown("# LLaDA - Large Language Diffusion Model Demo")
-        gr.Markdown("[model](https://huggingface.co/GSAI-ML/LLaDA-8B-Instruct), [project page](https://ml-gsai.github.io/LLaDA-demo/)")
+        gr.Markdown("# Genjo - Large Language Diffusion Model Demo")
+        gr.Markdown("[model](https://huggingface.co/GSAI-ML/Genjo-8B-Instruct), [project page](https://ml-gsai.github.io/Genjo-demo/)")
         
         # STATE MANAGEMENT
         chat_history = gr.State([])

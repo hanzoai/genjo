@@ -28,8 +28,8 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = False
 
 
-@register_model("llada_dist")
-class LLaDAEvalHarness(LM):
+@register_model("genjo_dist")
+class GenjoEvalHarness(LM):
     def __init__(
         self,
         model_path='',
@@ -48,7 +48,7 @@ class LLaDAEvalHarness(LM):
     ):
         '''
         Args:
-            model_path: LLaDA-8B-Base model path.
+            model_path: Genjo-8B-Base model path.
             mask_id: The token id of [MASK] is 126336.
             max_length: the max sequence length.
             batch_size: mini batch size.
@@ -58,7 +58,7 @@ class LLaDAEvalHarness(LM):
                              generation). We implement this verification through the suffix_greedy_prediction() function, which 
                              returns a True/False judgment used for accuracy calculation. 
                              When is_check_greedy is set to True, the lm-evaluation-harness library automatically invokes this function. 
-                             However, since none of the metrics in the LLaDA paper (https://arxiv.org/abs/2502.09992) require this functionality, 
+                             However, since none of the metrics in the Genjo paper (https://arxiv.org/abs/2502.09992) require this functionality, 
                              we recommend setting is_check_greedy to False. This configuration causes suffix_greedy_prediction() to return False 
                              by default, significantly accelerating the evaluation process.
             cfg_scale: Unsupervised classifier-free guidance scale.
